@@ -54,6 +54,10 @@ FILE_COMPILE_FOR_SPEED
 #define MSP_WRITE_STRING 3
 #define MSP_DRAW_SCREEN 4
 #define MSP_SET_OPTIONS 5
+#define OPT_SD     0
+#define OPT_HDZERO 1
+#define OPT_DJIWTF 2
+
 #define DRAW_FREQ_DENOM 4 // 60Hz
 #define TX_BUFFER_SIZE 1024
 #define VTX_TIMEOUT 1000 // 1 second timer
@@ -64,14 +68,14 @@ static displayPort_t mspOsdDisplayPort;
 static bool vtxSeen, vtxActive, vtxReset;
 static timeMs_t vtxHeartbeat;
 
-// HD screen size
-#define ROWS 18
-#define COLS 50
-#define SCREENSIZE (ROWS*COLS)
-static uint8_t screen[SCREENSIZE];
-static BITARRAY_DECLARE(fontPage, SCREENSIZE); // font page for each character on the screen
-static BITARRAY_DECLARE(dirty, SCREENSIZE); // change status for each character on the screen
+// Default to largest display size
+static uint16_t screen_size = 1320; 
+static uint8_t  screen[1320];
+static BITARRAY_DECLARE(fontPage, 1320); // font page for each character on the screen
+static BITARRAY_DECLARE(dirty, 1320); // change status for each character on the screen
+
 static bool screenCleared;
+static videoSystem_e osdVideoSystem;
 
 extern uint8_t cliMode;
 
@@ -106,8 +110,22 @@ static void checkVtxPresent(void)
 
 static int setHdMode(displayPort_t *displayPort)
 {
+    uint8_t subSubCmd = 0;
+
+    switch (osdVideoSystem) {
+        case VIDEO_SYSTEM_HDZERO:
+            subSubCmd = OPT_HDZERO;
+            break;
+        case VIDEO_SYSTEM_DJIWTF:
+            subSubCmd = OPT_DJIWTF;
+            break;
+        default:
+            subSubCmd = OPT_SD;
+            break;
+    }
+
     checkVtxPresent();
-    uint8_t subcmd[] = { MSP_SET_OPTIONS, 0, 1 }; // font selection, mode (SD/HD)
+    uint8_t subcmd[] = { MSP_SET_OPTIONS, 0, subSubCmd }; // font selection, mode (SD/HD)
     return output(displayPort, MSP_DISPLAYPORT, subcmd, sizeof(subcmd));
 }
 
@@ -132,8 +150,8 @@ static bool readChar(displayPort_t *displayPort, uint8_t col, uint8_t row, uint1
 {
     UNUSED(displayPort);
 
-    uint16_t pos = (row * COLS) + col;
-    if (pos >= SCREENSIZE) {
+    uint16_t pos = (row * mspOsdDisplayPort.cols) + col;
+    if (pos >= screen_size) {
         return false;
     }
 
@@ -151,7 +169,7 @@ static bool readChar(displayPort_t *displayPort, uint8_t col, uint8_t row, uint1
 
 static int setChar(const uint16_t pos, const uint16_t c)
 {
-    if (pos < SCREENSIZE) {
+    if (pos < screen_size) {
         uint8_t ch = c & 0xFF;
         bool page = (c >> 8);
         if (screen[pos] != ch || bitArrayGet(fontPage, pos) !=  page) {
@@ -168,7 +186,7 @@ static int writeChar(displayPort_t *displayPort, uint8_t col, uint8_t row, uint1
     UNUSED(displayPort);
     UNUSED(attr);
 
-    return setChar((row * COLS) + col, c);
+    return setChar((row * mspOsdDisplayPort.cols) + col, c);
 }
 
 static int writeString(displayPort_t *displayPort, uint8_t col, uint8_t row, const char *string, textAttributes_t attr)
@@ -176,7 +194,7 @@ static int writeString(displayPort_t *displayPort, uint8_t col, uint8_t row, con
     UNUSED(displayPort);
     UNUSED(attr);
 
-    uint16_t pos = (row * COLS) + col;
+    uint16_t pos = (row * mspOsdDisplayPort.cols) + col;
     while (*string) {
         setChar(pos++, *string++);
     }
@@ -225,7 +243,7 @@ static int drawScreen(displayPort_t *displayPort) // 250Hz
     static uint8_t counter = 0;
 
     if ((counter++ % DRAW_FREQ_DENOM) == 0) {
-        uint8_t subcmd[COLS + 4];
+        uint8_t subcmd[mspOsdDisplayPort.cols + 4];
         uint8_t updateCount = 0;
         subcmd[0] = MSP_WRITE_STRING;
 
@@ -233,9 +251,9 @@ static int drawScreen(displayPort_t *displayPort) // 250Hz
         while (next >= 0) {
             // Look for sequential dirty characters on the same line for the same font page
             int pos = next;
-            uint8_t row = pos / COLS;
-            uint8_t col = pos % COLS;
-            int endOfLine = row * COLS + COLS;
+            uint8_t row = pos / mspOsdDisplayPort.cols;
+            uint8_t col = pos % mspOsdDisplayPort.cols;
+            int endOfLine = row * mspOsdDisplayPort.cols + mspOsdDisplayPort.cols;
             bool page = bitArrayGet(fontPage, pos);
 
             uint8_t len = 4;
@@ -283,15 +301,15 @@ static int drawScreen(displayPort_t *displayPort) // 250Hz
 
 static void resync(displayPort_t *displayPort)
 {
-    displayPort->rows = ROWS;
-    displayPort->cols = COLS;
+    displayPort->rows = mspOsdDisplayPort.rows;
+    displayPort->cols = mspOsdDisplayPort.cols;
     setHdMode(displayPort);
 }
 
 static int screenSize(const displayPort_t *displayPort)
 {
     UNUSED(displayPort);
-    return SCREENSIZE;
+    return screen_size;
 }
 
 static uint32_t txBytesFree(const displayPort_t *displayPort)
@@ -388,11 +406,40 @@ bool mspOsdSerialInit(void)
     return false;
 }
 
-displayPort_t* mspOsdDisplayPortInit(void)
+displayPort_t* mspOsdDisplayPortInit(const videoSystem_e videoSystem)
 {
+    osdVideoSystem = videoSystem;
+
     if (mspOsdSerialInit()) {
         init();
         displayInit(&mspOsdDisplayPort, &mspOsdVTable);
+        
+        switch (osdVideoSystem) {
+            case VIDEO_SYSTEM_AUTO:
+            case VIDEO_SYSTEM_PAL:
+                mspOsdDisplayPort.rows = 16;
+                mspOsdDisplayPort.cols = 30;
+                break;
+            case VIDEO_SYSTEM_NTSC:
+                mspOsdDisplayPort.rows = 13;
+                mspOsdDisplayPort.cols = 30;
+                break;
+            case VIDEO_SYSTEM_DJIWTF:
+                mspOsdDisplayPort.rows = 22;
+                mspOsdDisplayPort.cols = 60;
+                break;
+            case VIDEO_SYSTEM_HDZERO:
+            default:
+                mspOsdDisplayPort.rows = 18;
+                mspOsdDisplayPort.cols = 50;
+                break;
+        }
+
+        screen_size = mspOsdDisplayPort.rows * mspOsdDisplayPort.cols;
+
+        BITARRAY_DECLARE(fontPage, screen_size); // font page for each character on the screen
+        BITARRAY_DECLARE(dirty, screen_size); // change status for each character on the screen
+        
         return &mspOsdDisplayPort;
     }
     return NULL;

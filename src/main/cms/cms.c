@@ -167,9 +167,10 @@ displayPort_t *cmsDisplayPortGetCurrent(void)
 //   30 cols x 13 rows
 // HoTT Telemetry Screen
 //   21 cols x 8 rows
-// HD
+// HDZero
 //   50 cols x 18 rows
-//
+// DJI WTFos
+//   60 cols x 22 rows
 
 #define NORMAL_SCREEN_MIN_COLS 18      // Less is a small screen
 #define NORMAL_SCREEN_MAX_COLS 30      // More is a big screen
