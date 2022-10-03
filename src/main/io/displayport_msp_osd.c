@@ -61,12 +61,14 @@ FILE_COMPILE_FOR_SPEED
 #define DRAW_FREQ_DENOM 4 // 60Hz
 #define TX_BUFFER_SIZE 1024
 #define VTX_TIMEOUT 1000 // 1 second timer
+#define PFRAME_INTERVAL 5000 // Time between P frames
 
 static mspProcessCommandFnPtr mspProcessCommand;
 static mspPort_t mspPort;
 static displayPort_t mspOsdDisplayPort;
 static bool vtxSeen, vtxActive, vtxReset;
 static timeMs_t vtxHeartbeat;
+static timeMs_t sendPFrame = 0;
 
 // Default to largest display size
 static uint16_t screen_size = 1320; 
@@ -228,7 +230,6 @@ static void printStats(displayPort_t *displayPort, uint32_t updates)
         lastTime = currentTime;
     }
 
-
     tfp_sprintf(lineBuffer, "R:%2d %4ld %5ld(%5ld) U:%2ld(%2ld) B:%3ld(%4ld,%4ld)", resetCount, (millis()-vtxHeartbeat),
             dataSent, maxDataSent, updates, maxUpdates, bufferUsed, maxBufferUsed, mspPort.port->txBufferSize);
     writeString(displayPort, 0, 17, lineBuffer, 0);
@@ -241,8 +242,14 @@ static void printStats(displayPort_t *displayPort, uint32_t updates)
 static int drawScreen(displayPort_t *displayPort) // 250Hz
 {
     static uint8_t counter = 0;
+    uint8_t drawFrequencyDenom = DRAW_FREQ_DENOM;
+    
+    if (osdVideoSystem == VIDEO_SYSTEM_DJIWTF) {
+        // slow down update for DJI WTF
+        drawFrequencyDenom = DRAW_FREQ_DENOM * 2;
+    }
 
-    if ((counter++ % DRAW_FREQ_DENOM) == 0) {
+    if ((counter++ % drawFrequencyDenom) == 0) {
         uint8_t subcmd[mspOsdDisplayPort.cols + 4];
         uint8_t updateCount = 0;
         subcmd[0] = MSP_WRITE_STRING;
@@ -294,6 +301,11 @@ static int drawScreen(displayPort_t *displayPort) // 250Hz
             clearScreen(displayPort);
             vtxReset = false;
         }
+    } else if (((counter % drawFrequencyDenom) == 1) && (millis() > sendPFrame)) {
+        // Make all characters dirty, to perform full screen redraw
+        memset(screen, SYM_BLANK, sizeof(screen)); // May not be necessary. Requires testing.
+        BITARRAY_SET_ALL(dirty);
+        sendPFrame = millis() + PFRAME_INTERVAL;
     }
 
     return 0;
@@ -436,9 +448,6 @@ displayPort_t* mspOsdDisplayPortInit(const videoSystem_e videoSystem)
         }
 
         screen_size = mspOsdDisplayPort.rows * mspOsdDisplayPort.cols;
-
-        BITARRAY_DECLARE(fontPage, screen_size); // font page for each character on the screen
-        BITARRAY_DECLARE(dirty, screen_size); // change status for each character on the screen
         
         return &mspOsdDisplayPort;
     }
