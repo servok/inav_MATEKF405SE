@@ -303,7 +303,6 @@ static int drawScreen(displayPort_t *displayPort) // 250Hz
         }
     } else if (((counter % drawFrequencyDenom) == 1) && (millis() > sendPFrame)) {
         // Make all characters dirty, to perform full screen redraw
-        memset(screen, SYM_BLANK, sizeof(screen)); // May not be necessary. Requires testing.
         BITARRAY_SET_ALL(dirty);
         sendPFrame = millis() + PFRAME_INTERVAL;
     }
