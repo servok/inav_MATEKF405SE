@@ -23,6 +23,7 @@
 
 #ifdef USE_OSD
 
+#define SYM_NONE                    0x00  // 000 blank
 #define SYM_RSSI                    0x01  // 001 Icon RSSI
 #define SYM_LQ                      0x02  // 002 LQ
 #define SYM_LAT                     0x03  // 003 GPS LAT
@@ -246,6 +247,174 @@
 #define SYM_HUD_ARROWS_D1           0x1B7 // 439 1 arrow down
 #define SYM_HUD_ARROWS_D2           0x1B8 // 440 2 arrows down
 #define SYM_HUD_ARROWS_D3           0x1B9 // 441 3 arrows down
+
+#ifdef USE_DJI_O3_OSD
+
+// 0x00 (000) None matches INAV
+// 0x01 (001) RSSI matches INAV
+#undef SYM_AH_RIGHT
+#define SYM_AH_RIGHT                0x02  // 002 Arrow right
+#undef SYM_AH_LEFT
+#define SYM_AH_LEFT                 0x03  // 003 Arrow left
+#undef SYM_THR
+#define SYM_THR                     0x04  // 004 Throttle
+#undef SYM_HOME
+#define SYM_HOME                    0x05  // 005 Home icon
+#undef SYM_VOLT
+#define SYM_VOLT                    0x06  // 006 VOLTS
+#undef SYM_MAH
+#define SYM_MAH                     0x07  // 007 mAh
+#undef SYM_DEGREES
+#define SYM_DEGREES                 0x0B  // 008 ° heading angle (looks similar)
+// 0x09-0x0B (019-011) stick overlay not used
+#undef SYM_M
+#define SYM_M                       0x0C  // 012 M
+#undef 
+#define SYM_TEMP_F                  0x0D  // 013 °F
+#undef 
+#define SYM_TEMP_C                  0x0E  // 014 °C
+#undef SYM_FT
+#define SYM_FT                      0x0F  // 015 FEET
+// 0x10 (016) Blackbox in PR not yet merged https://github.com/iNavFlight/inav-configurator/pull/1656
+#undef SYM_HOME_NEAR
+#define SYM_HOME_NEAR               0x11  // 017 Home, near
+#undef SYM_RPM
+#define SYM_RPM                     0x12  // 018 RPM
+#undef SYM_AH_DECORATION_MIN
+#define SYM_AH_DECORATION_MIN       0x13 // 019 AH decoration
+#undef SYM_AH_DECORATION_MIN
+#define SYM_AH_DECORATION           0x13 // 019 AH decoration
+#undef SYM_AH_DECORATION_MIN
+#define SYM_AH_DECORATION_MAX       0x13 // 019 AH decoration
+#undef SYM_AH_DECORATION_MIN
+#define SYM_AH_DECORATION_COUNT     1
+#undef SYM_ROLL_LEFT
+#define SYM_ROLL_LEFT               0x14  // 020 Roll
+#undef SYM_ROLL_LEVEL
+#define SYM_ROLL_LEVEL              0x14  // 020 Roll
+#undef SYM_ROLL_RIGHT
+#define SYM_ROLL_RIGHT              0x14  // 020 Roll
+#undef SYM_PITCH_UP
+#define SYM_PITCH_UP                0x15  // 021 Pitch
+#undef SYM_PITCH_DOWN
+#define SYM_PITCH_DOWN              0x15  // 021 Pitch
+// 0x16-0x17 (022-023) stick overlay not used
+#undef SYM_HEADING_N
+#define SYM_HEADING_N               0x18  // 024 Heading Graphic north
+#undef SYM_HEADING_S
+#define SYM_HEADING_S               0x19  // 025 Heading Graphic south
+#undef SYM_HEADING_E
+#define SYM_HEADING_E               0x1A  // 026 Heading Graphic east
+#undef SYM_HEADING_W
+#define SYM_HEADING_W               0x1B  // 027 Heading Graphic west
+#undef SYM_HEADING_DIVIDED_LINE
+#define SYM_HEADING_DIVIDED_LINE    0x1C  // 028 Heading Graphic
+#undef SYM_HEADING_LINE
+#define SYM_HEADING_LINE            0x1D  // 029 Heading Graphic
+#undef SYM_SAT_L
+#define SYM_SAT_L                   0x1E  // 030 Sats left
+#undef SYM_SAT_R
+#define SYM_SAT_R                   0x1F  // 031 Sats right
+// 0x20 (032) Blank matches INAV
+// 0x21, 0x23, 0x25-0x26, 0x28-0x3E, 0x40-0x5F (033, 035, 037-038, 040-062, and 064-095) ASCII
+// 0x22 & 0x27 (034 & 39) " & ' not in INAV
+#undef SYM_MAX
+#define SYM_MAX                     0x23  // 035 MAX symbol
+#undef SYM_WATT
+#define SYM_WATT                    0x57  // 087 WATTS
+#undef SYM_ARROW_DOWN
+#define SYM_ARROW_DOWN              0x60  // 096 Direction arrow 180°
+#undef SYM_ARROW_8
+#define SYM_ARROW_8                 0x61  // 097 Direction arrow 157.5°
+#undef SYM_ARROW_7
+#define SYM_ARROW_7                 0x62  // 098 Direction arrow 135°
+#undef SYM_ARROW_6
+#define SYM_ARROW_6                 0x63  // 099 Direction arrow 112.5°
+#undef SYM_ARROW_RIGHT
+#define SYM_ARROW_RIGHT             0x64  // 100 Direction arrow 90°
+#undef SYM_ARROW_4
+#define SYM_ARROW_4                 0x65  // 101 Direction arrow 67.5°
+#undef SYM_ARROW_3
+#define SYM_ARROW_3                 0x66  // 102 Direction arrow 45°
+#undef SYM_ARROW_2
+#define SYM_ARROW_2                 0x67  // 103 Direction arrow 22.5°
+#undef SYM_ARROW_UP
+#define SYM_ARROW_UP                0x68  // 104 Direction arrow 0°
+#undef SYM_ARROW_16
+#define SYM_ARROW_16                0x69  // 105 Direction arrow 337.5°
+#undef SYM_ARROW_15
+#define SYM_ARROW_15                0x6A  // 106 Direction arrow 315°
+#undef SYM_ARROW_14
+#define SYM_ARROW_14                0x6B  // 107 Direction arrow 292.5°
+#undef SYM_ARROW_LEFT
+#define SYM_ARROW_LEFT              0x6C  // 108 Direction arrow 270°
+#undef SYM_ARROW_12
+#define SYM_ARROW_12                0x6D  // 109 Direction arrow 247.5°
+#undef SYM_ARROW_11
+#define SYM_ARROW_11                0x6E  // 110 Direction arrow 225°
+#undef SYM_ARROW_10
+#define SYM_ARROW_10                0x6F  // 111 Direction arrow 202.5°
+#undef SYM_ON_H
+#define SYM_ON_H                    0x70  // 112 ON HR
+#undef SYM_FLY_H
+#define SYM_FLY_H                   0x71  // 113 FLY HR
+#undef SYM_AH_CH_LEFT
+#define SYM_AH_CH_LEFT              0x72  // 114 Crossair left
+#undef SYM_AH_CH_CENTER
+#define SYM_AH_CH_CENTER            0x73  // 115 Crossair center
+#undef SYM_AH_CH_RIGHT
+#define SYM_AH_CH_RIGHT             0x74  // 116 Crossair right
+#undef SYM_DIRECTION
+#define SYM_DIRECTION               0x75  // 117 to 124, directional little arrows. Note, the DJI OSD font only has 117-121
+#undef SYM_TEMP
+#define SYM_TEMP                    0x7A  // 122 Thermometer icon
+#undef SYM_LQ
+#define SYM_LQ                      0x7B  // 123 LQ
+// 0x7C (124) ASCII |
+#undef SYM_KM
+#define SYM_KM                      0x7D  // 125 KM
+#undef SYM_MI
+#define SYM_MI                      0x7E  // 126 MI
+#undef SYM_ALT
+#define SYM_ALT                     0x7F  // 127 ALT
+#undef SYM_AH_H_START
+#define SYM_AH_H_START              0x80  // 128 to 136 Horizontal AHI
+#undef SYM_LAT
+#define SYM_LAT                     0x89  // 137 GPS LAT
+// 0x8A-0x8F (138-143) not used in INAV
+#undef SYM_BATT_FULL
+#define SYM_BATT_FULL               0x90  // 144 Battery full
+#undef SYM_BATT_5
+#define SYM_BATT_5                  0x91  // 145 Battery
+#undef SYM_BATT_4
+#define SYM_BATT_4                  0x92  // 146 Battery
+#undef SYM_BATT_3
+#define SYM_BATT_3                  0x93  // 147 Battery
+#undef SYM_BATT_2
+#define SYM_BATT_2                  0x94  // 148 Battery
+#undef SYM_BATT_1
+#define SYM_BATT_1                  0x95  // 149 Battery
+#undef SYM_BATT_EMPTY
+#define SYM_BATT_EMPTY              0x96  // 150 Battery empty
+// 0x97 (151) not used in INAV
+#undef SYM_LON
+#define SYM_LON                     0x98  // 152 GPS LON
+#undef SYM_FTS
+#define SYM_FTS                     0x99  // 153 FT/S
+#undef SYM_AMP
+#define SYM_AMP                     0x9A  // 154 AMPS
+#undef SYM_ON_M
+#define SYM_ON_M                    0x9B  // 155 On MIN
+#undef SYM_FLY_M
+#define SYM_FLY_M                   0x9C  // 156 FL MIN
+#undef SYM_MPH
+#define SYM_MPH                     0x9D  // 157 MPH
+#undef SYM_KMH
+#define SYM_KMH                     0x9E  // 158 KM/H
+#undef SYM_MS
+#define SYM_MS                      0x9F  // 159 M/S
+
+#endif // USE_DJI_O3_OSD
 
 #else
 
